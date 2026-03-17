@@ -3,25 +3,32 @@ using MediatR;
 using ProductDemo.DAL.Entities;
 using ProductDemo.DAL.Repositories;
 using ProductDemo.DTO;
+using ProductDemo.Services;
 
 namespace ProductDemo.Features.Products.Queries
 {
-    public class ProductQueryHandler : IRequestHandler<ProductQuery, ProductDto>
+    public class ProductQueryHandler(IProductRepository productRepository,
+                                    IInventoryService inventoryService,
+                                    IMapper mapper
+                                     ) : IRequestHandler<ProductQuery, ProductDto>
     {
-        private readonly IProductRepository _productRepository;
-        private readonly IMapper _mapper;
-        public ProductQueryHandler(IProductRepository productRepository, IMapper mapper)
-        {
-            _productRepository = productRepository;
-            _mapper = mapper;
-        }
-
+ 
         public async Task<ProductDto> Handle(ProductQuery request, CancellationToken cancellationToken)
         {
-            var product = await _productRepository.Get(Guid.Parse(request.Id));
-            var productDto = _mapper.Map<Product, ProductDto>(product);
+            var product = await productRepository.Get(Guid.Parse(request.Id));
+            var productDto = mapper.Map<Product, ProductDto>(product);
 
-            return productDto;
+            var inventory = await inventoryService.GetProductAsync(request.Id, cancellationToken);
+            if (inventory == null)
+            {
+                return productDto;
+            }
+            else
+            {
+                productDto.Price = inventory.Price;
+                productDto.Stock = inventory.Stock;
+            }
+            return productDto; 
         }
     }
 }
