@@ -39,9 +39,9 @@ namespace ProductDemo.DAL.Repositories
             dalContext.Entry(entity).State = EntityState.Modified;
         }
 
-        public virtual int Save()
+        public virtual async Task<int> SaveChangesAsync()
         {
-            return dalContext.SaveChanges();
+            return await dalContext.SaveChangesAsync();
         }
 
     }

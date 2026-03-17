@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using ProductDemo.DAL;
+using ProductDemo.DAL.Repositories;
+using ProductDemo.Mappings;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +15,17 @@ builder.Services.AddSwaggerGen();
 // Data Context 
 builder.Services.AddDbContext<ProductDbContext>(db => db.UseSqlServer(builder.Configuration.GetConnectionString("ProductDatabase")), ServiceLifetime.Singleton);
 
+// Mediatr
+builder.Services.AddMediatR(configuration => configuration.RegisterServicesFromAssembly(typeof(Program).Assembly));
+
+// Dependencies
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
+
+// AutoMapper
+builder.Services.AddAutoMapper(cfg =>
+{
+    cfg.AddProfile<ApplicationProfile>();
+});
 
 var app = builder.Build();
 
