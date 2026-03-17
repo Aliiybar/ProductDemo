@@ -1,5 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using ProductDemo.Helper;
+using ProductDemo.DTO;
 using ProductDemo.Features.Products.Commands;
 using ProductDemo.Features.Products.Queries;
 
@@ -27,8 +29,13 @@ namespace ProductDemo.Controllers
         public async Task<IActionResult> GetProduct(string id)
         {
             var query = new ProductQuery { Id = id };
-            var product = await _sender.Send(query);
-            return Ok(product);
+            var apiResponse = await _sender.Send(query);
+
+            if (apiResponse.Status == EnumHelper.GetDescription(ApiStatusCode.Fail))
+            {
+                return NotFound();
+            }
+            return Ok(apiResponse);
         }
     }
 }

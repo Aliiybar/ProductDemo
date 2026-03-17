@@ -6,9 +6,9 @@ using AutoMapper;
 
 namespace ProductDemo.Mappings
 {
-    public class ApplicationProfile :Profile
+    public class AutoMapperProfile :Profile
     {
-        public ApplicationProfile()
+        public AutoMapperProfile()
         {
             CreateMap<CreateProductCommand, Product>();
             CreateMap<Product, ProductDto>();

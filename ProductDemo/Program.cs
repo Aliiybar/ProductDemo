@@ -30,7 +30,7 @@ builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBeh
 // AutoMapper
 builder.Services.AddAutoMapper(cfg =>
 {
-    cfg.AddProfile<ApplicationProfile>();
+    cfg.AddProfile<AutoMapperProfile>();
 });
 
 // Dependencies
