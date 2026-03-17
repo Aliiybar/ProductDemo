@@ -1,6 +1,10 @@
+using FluentValidation;
+using MediatR;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using ProductDemo.DAL;
 using ProductDemo.DAL.Repositories;
+using ProductDemo.Features;
 using ProductDemo.Mappings;
 using ProductDemo.Services;
 
@@ -18,6 +22,10 @@ builder.Services.AddDbContext<ProductDbContext>(db => db.UseSqlServer(builder.Co
 
 // Mediatr
 builder.Services.AddMediatR(configuration => configuration.RegisterServicesFromAssembly(typeof(Program).Assembly));
+builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
+
+// Register pipeline behavior
+builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 
 // AutoMapper
 builder.Services.AddAutoMapper(cfg =>
@@ -41,6 +49,28 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseExceptionHandler(errorApp =>
+{
+    errorApp.Run(async context =>
+    {
+        var exception = context.Features.Get<IExceptionHandlerFeature>()?.Error;
+
+        if (exception is ValidationException validationException)
+        {
+            context.Response.StatusCode = 400;
+
+            var errors = validationException.Errors
+                .GroupBy(e => e.PropertyName)
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.Select(e => e.ErrorMessage).ToArray()
+                );
+
+            await context.Response.WriteAsJsonAsync(new { errors });
+        }
+    });
+});
 
 app.UseHttpsRedirection();
 
